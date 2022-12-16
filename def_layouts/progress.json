@@ -1,0 +1,14 @@
+{
+	"title": "__title__",
+	"window_size": [
+		300,
+		100
+	],
+	"body": [
+		{
+			"type": "progress",
+			"id": "progress",
+			"label": "__label__"
+		}
+	]
+}

@@ -1,0 +1,19 @@
+{
+	"title": "__title__",
+	"window_size": [
+		300,
+		120
+	],
+	"body": [
+		{
+			"type": "label",
+			"text": "__label__"
+		},
+		{
+			"type": "text",
+			"required": true,
+			"id": "input",
+			"placeholder": "__placeholder__"
+		}
+	]
+}

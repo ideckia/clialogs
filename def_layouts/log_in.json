@@ -1,0 +1,20 @@
+{
+	"title": "__title__",
+	"window_size": [
+		300,
+		120
+	],
+	"body": [
+		{
+			"type": "text",
+			"id": "username",
+			"label": "__user_label__"
+		},
+		{
+			"type": "password",
+			"required": true,
+			"id": "password",
+			"label": "__pass_label__"
+		}
+	]
+}

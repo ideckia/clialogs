@@ -1,0 +1,15 @@
+{
+	"title": "__title__",
+	"window_size": [
+		200,
+		150
+	],
+	"body": [
+		{
+			"type": "combobox",
+			"id": "select",
+			"label": "__label__",
+			"options": __options__
+		}
+	]
+}
