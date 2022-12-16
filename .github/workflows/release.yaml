@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags: 
+      - 'v*'
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    # Note this. We are going to use that in further jobs.
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+  release_assets:
+    name: Release assets
+    needs: create_release # we need to know the upload URL
+
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+
+        include:
+        - os: ubuntu-latest
+          short_os: linux
+          filename: clialogs
+
+        - os: windows-latest
+          short_os: win
+          filename: clialogs.exe
+
+        - os: macos-latest
+          short_os: macos
+          filename: clialogs
+
+    env:
+      APP_NAME: clialogs
+    
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      # if linux or windows
+      - name: Install latest rust toolchain for linux or windows
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+      # else
+      - name: Install latest rust toolchain for macos
+        if: matrix.os == 'macos-latest'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-apple-darwin
+          default: true
+          override: true
+      # end if
+      
+      # if linux
+      - name: Install linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libc6-dev
+      # end if
+
+      # if macos or windows
+      - name: Build
+        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+        run: cargo build --release
+      # else
+      - name: Build
+        if: matrix.os == 'ubuntu-latest'
+        run: RUSTFLAGS="-C target-feature=-crt-static" cargo build --release --target x86_64-unknown-linux-gnu
+      # end if
+      
+      # if linux
+      - name: Prepare binary for packaging
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p target/release
+          mv target/x86_64-unknown-linux-gnu/release/${{ matrix.filename }} target/release/
+      # end
+
+      - name: Package to release
+        run: |
+          mkdir -p tmp/${{ env.APP_NAME }}
+          mv def_layouts tmp/${{ env.APP_NAME }}
+          mv readme.md tmp/${{ env.APP_NAME }}
+          mv target/release/${{ matrix.filename }} tmp/${{ env.APP_NAME }}
+
+      - uses: papeloto/action-zip@v1
+        with:
+          files: tmp/
+          dest: ${{ env.APP_NAME }}-${{ matrix.short_os }}.zip
+
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_name: ${{ env.APP_NAME }}-${{ matrix.short_os }}.zip
+          asset_path: ${{ env.APP_NAME }}-${{ matrix.short_os }}.zip
+          asset_content_type: application/octet-stream

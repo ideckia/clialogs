@@ -1,0 +1,14 @@
+{
+	"title": "__title__",
+	"window_size": [
+		450,
+		350
+	],
+	"body": [
+		{
+			"type": "color",
+			"id": "color",
+			"label": "__label__"
+		}
+	]
+}

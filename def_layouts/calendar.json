@@ -1,0 +1,15 @@
+{
+	"title": "__title__",
+	"window_size": [
+		450,
+		350
+	],
+	"body": [
+		{
+			"type": "calendar",
+			"id": "date",
+			"label": "__label__",
+			"date_format": "__date-format__"
+		}
+	]
+}

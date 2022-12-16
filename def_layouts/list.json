@@ -1,0 +1,15 @@
+{
+	"title": "__title__",
+	"window_size": [
+		300,
+		400
+	],
+	"body": [
+		{
+			"type": "list",
+			"id": "list",
+			"header": "__header__",
+			"values": __values__
+		}
+	]
+}
