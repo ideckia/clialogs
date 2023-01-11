@@ -6,9 +6,10 @@
 	],
 	"body": [
 		{
-			"type": "progress",
-			"id": "progress",
-			"label": "__label__"
+			"progress": {
+				"id": "progress",
+				"label": "__label__"
+			}
 		}
 	]
 }

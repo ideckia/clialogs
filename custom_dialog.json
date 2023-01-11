@@ -6,104 +6,114 @@
 	],
 	"body": [
 		{
-			"type": "label",
-			"text": "Long text to show how label works"
+			"label": {
+				"text": "Long text to show how label works"
+			}
 		},
 		{
-			"type": "text",
-			"id": "name",
-			"label": "name",
-			"required": true,
-			"placeholder": "your name"
+			"text": {
+				"id": "name",
+				"label": "name",
+				"required": true,
+				"placeholder": "your name"
+			}
 		},
 		{
-			"type": "text",
-			"id": "description",
-			"multiline": true,
-			"label": "description",
-			"placeholder": "description"
+			"text": {
+				"id": "description",
+				"multiline": true,
+				"label": "description",
+				"placeholder": "description"
+			}
 		},
 		{
-			"type": "calendar",
-			"id": "date",
-			"label": "date",
-			"date": "2016-02-01"
+			"calendar": {
+				"id": "date",
+				"label": "date",
+				"date": "2016-02-01"
+			}
 		},
 		{
-			"type": "check",
-			"id": "like_check",
-			"required": true,
-			"label": "Do you like it?"
+			"check": {
+				"id": "like_check",
+				"required": true,
+				"label": "Do you like it?"
+			}
 		},
 		{
-			"type": "color",
-			"id": "color",
-			"required": true,
-			"label": "Select color"
+			"color": {
+				"id": "color",
+				"required": true,
+				"label": "Select color"
+			}
 		},
 		{
-			"type": "combobox",
-			"id": "select",
-			"label": "Select one",
-			"required": true,
-			"options": [
-				"0. bat",
-				"1. dos",
-				"2. trois",
-				"3. bat",
-				"4. dos",
-				"5. trois",
-				"6. bat",
-				"7. dos",
-				"8. trois",
-				"9. bat",
-				"10. dos"
-			]
+			"combobox": {
+				"id": "select",
+				"label": "Select one",
+				"required": true,
+				"options": [
+					"0. bat",
+					"1. dos",
+					"2. trois",
+					"3. bat",
+					"4. dos",
+					"5. trois",
+					"6. bat",
+					"7. dos",
+					"8. trois",
+					"9. bat",
+					"10. dos"
+				]
+			}
 		},
 		{
-			"type": "list",
-			"id": "list",
-			"required": true,
-			"header": "Header",
-			"values": [
-				"0. bat",
-				"1. dos",
-				"2. trois",
-				"3. bat",
-				"4. dos",
-				"5. trois",
-				"6. bat",
-				"7. dos",
-				"8. trois",
-				"9. bat",
-				"10. dos",
-				"11. trois",
-				"12. bat",
-				"13. dos",
-				"14. trois",
-				"15. bat",
-				"16. dos",
-				"17. trois",
-				"18. bat",
-				"19. dos",
-				"20. trois"
-			]
+			"list": {
+				"id": "list",
+				"required": true,
+				"header": "Header",
+				"values": [
+					"0. bat",
+					"1. dos",
+					"2. trois",
+					"3. bat",
+					"4. dos",
+					"5. trois",
+					"6. bat",
+					"7. dos",
+					"8. trois",
+					"9. bat",
+					"10. dos",
+					"11. trois",
+					"12. bat",
+					"13. dos",
+					"14. trois",
+					"15. bat",
+					"16. dos",
+					"17. trois",
+					"18. bat",
+					"19. dos",
+					"20. trois"
+				]
+			}
 		},
 		{
-			"type": "radio",
-			"id": "like_radio",
-			"label": "Do you like it?",
-			"selected": "50/50",
-			"options": [
-				"nope",
-				"50/50",
-				"amazing!"
-			]
+			"radio": {
+				"id": "like_radio",
+				"label": "Do you like it?",
+				"selected": "50/50",
+				"options": [
+					"nope",
+					"50/50",
+					"amazing!"
+				]
+			}
 		},
 		{
-			"type": "progress",
-			"id": "progress",
-			"label": "Progress"
+			"progress": {
+				"id": "progress",
+				"label": "Progress"
+			}
 		}
 	]
 }

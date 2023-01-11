@@ -255,7 +255,7 @@ fn main() {
         let (width, height) = img.dimensions();
 
         native_options.icon_data = Some(IconData {
-            rgba: img.to_rgb8().into_raw(),
+            rgba: img.to_rgba8().into_raw(),
             width,
             height,
         });

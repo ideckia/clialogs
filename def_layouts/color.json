@@ -6,9 +6,10 @@
 	],
 	"body": [
 		{
-			"type": "color",
-			"id": "color",
-			"label": "__label__"
+			"color": {
+				"id": "color",
+				"label": "__label__"
+			}
 		}
 	]
 }

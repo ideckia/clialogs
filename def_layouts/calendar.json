@@ -6,10 +6,11 @@
 	],
 	"body": [
 		{
-			"type": "calendar",
-			"id": "date",
-			"label": "__label__",
-			"date_format": "__date-format__"
+			"calendar": {
+				"id": "date",
+				"label": "__label__",
+				"date_format": "__date-format__"
+			}
 		}
 	]
 }
