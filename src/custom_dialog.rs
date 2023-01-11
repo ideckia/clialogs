@@ -19,7 +19,6 @@ pub struct CustomDialog {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum Field {
     Label {

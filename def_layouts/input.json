@@ -6,14 +6,16 @@
 	],
 	"body": [
 		{
-			"type": "label",
-			"text": "__label__"
+			"label": {
+				"text": "__label__"
+			}
 		},
 		{
-			"type": "text",
-			"required": true,
-			"id": "input",
-			"placeholder": "__placeholder__"
+			"text": {
+				"required": true,
+				"id": "input",
+				"placeholder": "__placeholder__"
+			}
 		}
 	]
 }

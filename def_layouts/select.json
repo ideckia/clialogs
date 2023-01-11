@@ -6,10 +6,11 @@
 	],
 	"body": [
 		{
-			"type": "combobox",
-			"id": "select",
-			"label": "__label__",
-			"options": __options__
+			"combobox": {
+				"id": "select",
+				"label": "__label__",
+				"options": __options__
+			}
 		}
 	]
 }

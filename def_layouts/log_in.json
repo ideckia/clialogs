@@ -6,15 +6,17 @@
 	],
 	"body": [
 		{
-			"type": "text",
-			"id": "username",
-			"label": "__user_label__"
+			"text": {
+				"id": "username",
+				"label": "__user_label__"
+			}
 		},
 		{
-			"type": "password",
-			"required": true,
-			"id": "password",
-			"label": "__pass_label__"
+			"password": {
+				"required": true,
+				"id": "password",
+				"label": "__pass_label__"
+			}
 		}
 	]
 }
