@@ -4,14 +4,16 @@
 
 ## Usage
 
-clialogs <COMMAND> <COMMAND_ARGUMENTS>
+clialogs [--icon-path <ICON_PATH>] <COMMAND> <COMMAND_ARGUMENTS>
+
+The `--icon-path` argument is optional and it is the path of the icon to show in the window and the taskbar
 
 All command have the same output format, which is printed in stdout when the dialog closes:
 
 
 ```json
 {
-    "type": "ok or cancel",
+    "type": "ok", // or "cancel"
     "body": [
         {
             "id": "id_of_the_field",
@@ -43,7 +45,6 @@ There are the available commands
 notification  Notification
     --title     <TITLE>      Title of the notification
     --text      <TEXT>       Text of the notification
-    --icon-path <ICON_PATH>
 ```
 Example: `clialogs notification --title "Title" --text "Text of notification"`
 
@@ -102,7 +103,6 @@ Example output:
 input         Input with a label
     --title     <TITLE>     Title of the window
     --label     <LABEL>     Label of the input
-    --icon-path <ICON_PATH> Path of the icon
     --hint      <HINT>      Hint text of the input
 ```
 Example: `clialogs input --title "Title" --label "write text please"`
@@ -131,7 +131,6 @@ Example output:
 progress         Progress dialog
     --title     <TITLE>     Title of the window
     --label     <LABEL>     Label of the progress
-    --icon-path <ICON_PATH> Path of the icon
 ```
 Example: `clialogs progress --title "Title" --label "work in progress"`
 
@@ -156,7 +155,6 @@ Example output:
 ```
 log-in        Dialog to write username and password
     --title      <TITLE>    Title of the window
-    --icon-path <ICON_PATH> Path of the icon
     --user-label <USER_LABEL>
     --pass-label <PASS_LABEL>
 ```
@@ -189,7 +187,6 @@ Example output:
 ```
 calendar      Select a date
     --title         <TITLE>         Title of the window
-    --icon-path     <ICON_PATH>     Path of the icon
     --label         <LABEL>         Label of the calendar button
     --date-format   <DATE_FORMAT>   Format of the return date (default "%Y-%m-%d")
 ```
@@ -219,7 +216,6 @@ Example output:
 ```
 color      Select a color
     --title     <TITLE>     Title of the window
-    --icon-path <ICON_PATH> Path of the icon
     --label     <LABEL>     Label of the color button
 ```
 
@@ -248,7 +244,6 @@ Example output:
 ```
 list          Show list of strings as table
     --title     <TITLE>     Title of the window
-    --icon-path <ICON_PATH> Path of the icon
     --header    <HEADER>    Header of the list
 -v, --value     <VALUES>    Values to show in the list
 ```
@@ -278,7 +273,6 @@ Example output:
 ```
 select        Show select box with given strings
     --title     <TITLE>     Title of the window
-    --icon-path <ICON_PATH> Path of the icon
     --label     <LABEL>     Label for the select box
 -o, --option    <OPTIONS>   Options to select
 ```

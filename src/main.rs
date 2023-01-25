@@ -11,182 +11,154 @@ use std::{collections::HashMap, fs, path::Path, vec};
 
 fn main() {
     let cli = clialogs::cli::Cli::parse();
-    let (path, patterns, arg_icon_path): (String, HashMap<&str, String>, Option<String>) =
-        match cli.command {
-            Command::Notification {
-                title,
-                text,
-                icon_path,
-            } => {
-                let mut not = notify_rust::Notification::new();
-                not.summary(&title);
-                not.body(&text);
-                if let Some(icon) = icon_path {
-                    not.icon(&icon);
-                }
-                match not.show() {
-                    Ok(_) => {}
-                    Err(err) => {
-                        eprintln!("Error showing notification {}", err);
-                    }
-                };
-                return;
+    let arg_icon_path = cli.icon_path;
+    let (path, patterns): (String, HashMap<&str, String>) = match cli.command {
+        Command::Notification { title, text } => {
+            let mut not = notify_rust::Notification::new();
+            not.summary(&title);
+            not.body(&text);
+            if let Some(icon) = arg_icon_path {
+                not.icon(&icon);
             }
-            Command::FileDialog {
-                directory,
-                multiple,
-                save,
-            } => {
-                let dialog = FileDialog::new();
+            match not.show() {
+                Ok(_) => {}
+                Err(err) => {
+                    eprintln!("Error showing notification {}", err);
+                }
+            };
+            return;
+        }
+        Command::FileDialog {
+            directory,
+            multiple,
+            save,
+        } => {
+            let dialog = FileDialog::new();
 
-                let opt_paths = if save {
-                    match dialog.save_file() {
+            let opt_paths = if save {
+                match dialog.save_file() {
+                    Some(f) => Some(vec![f]),
+                    None => None,
+                }
+            } else if multiple {
+                if directory {
+                    dialog.pick_folders()
+                } else {
+                    dialog.pick_files()
+                }
+            } else {
+                if directory {
+                    match dialog.pick_folder() {
+                        Some(d) => Some(vec![d]),
+                        None => None,
+                    }
+                } else {
+                    match dialog.pick_file() {
                         Some(f) => Some(vec![f]),
                         None => None,
                     }
-                } else if multiple {
-                    if directory {
-                        dialog.pick_folders()
-                    } else {
-                        dialog.pick_files()
-                    }
-                } else {
-                    if directory {
-                        match dialog.pick_folder() {
-                            Some(d) => Some(vec![d]),
-                            None => None,
-                        }
-                    } else {
-                        match dialog.pick_file() {
-                            Some(f) => Some(vec![f]),
-                            None => None,
-                        }
-                    }
-                };
-
-                if let Some(paths) = opt_paths {
-                    Response::ok(vec![ResponseBody {
-                        id: "paths".to_string(),
-                        value: format!("{:?}", paths),
-                    }]);
-                } else {
-                    Response::cancel();
                 }
-                return;
-            }
-            Command::MessageDialog { title, level, text } => {
-                let buttons = match level {
-                    MessageDialogLevel::Question => MessageButtons::OkCancel,
-                    _ => MessageButtons::Ok,
-                };
-                let ok_pressed = MessageDialog::new()
-                    .set_title(title.as_str())
-                    .set_description(text.as_str())
-                    .set_level(match level {
-                        MessageDialogLevel::Warning => MessageLevel::Warning,
-                        MessageDialogLevel::Error => MessageLevel::Error,
-                        _ => MessageLevel::Info,
-                    })
-                    .set_buttons(buttons)
-                    .show();
+            };
 
-                if ok_pressed {
-                    Response::ok(Vec::new());
-                } else {
-                    Response::cancel();
-                }
-                return;
+            if let Some(paths) = opt_paths {
+                Response::ok(vec![ResponseBody {
+                    id: "paths".to_string(),
+                    value: format!("{:?}", paths),
+                }]);
+            } else {
+                Response::cancel();
             }
-            Command::Progress {
-                title,
-                icon_path,
-                label,
-            } => (
-                "def_layouts/progress.json".to_string(),
-                HashMap::from([("title", title), ("label", label)]),
-                icon_path,
-            ),
-            Command::Input {
-                title,
-                icon_path,
-                label,
-                hint,
-            } => (
-                "def_layouts/input.json".to_string(),
-                HashMap::from([
-                    ("title", title),
-                    ("label", label),
-                    ("placeholder", hint.unwrap_or("".to_string())),
-                ]),
-                icon_path,
-            ),
-            Command::LogIn {
-                title,
-                icon_path,
-                user_label,
-                pass_label,
-            } => (
-                "def_layouts/log_in.json".to_string(),
-                HashMap::from([
-                    ("title", title),
-                    ("user_label", user_label),
-                    ("pass_label", pass_label),
-                ]),
-                icon_path,
-            ),
-            Command::Calendar {
-                title,
-                icon_path,
-                label,
-                date_format,
-            } => (
-                "def_layouts/calendar.json".to_string(),
-                HashMap::from([
-                    ("title", title),
-                    ("label", label),
-                    ("date-format", date_format),
-                ]),
-                icon_path,
-            ),
-            Command::Color {
-                title,
-                icon_path,
-                label,
-            } => (
-                "def_layouts/color.json".to_string(),
-                HashMap::from([("title", title), ("label", label)]),
-                icon_path,
-            ),
-            Command::List {
-                title,
-                icon_path,
-                header,
-                values,
-            } => (
-                "def_layouts/list.json".to_string(),
-                HashMap::from([
-                    ("title", title),
-                    ("header", header),
-                    ("values", format!("{:?}", values)),
-                ]),
-                icon_path,
-            ),
-            Command::Select {
-                title,
-                icon_path,
-                label,
-                options,
-            } => (
-                "def_layouts/select.json".to_string(),
-                HashMap::from([
-                    ("title", title),
-                    ("label", label),
-                    ("options", format!("{:?}", options)),
-                ]),
-                icon_path,
-            ),
-            Command::Custom { layout_path } => (layout_path, HashMap::new(), None),
-        };
+            return;
+        }
+        Command::MessageDialog { title, level, text } => {
+            let buttons = match level {
+                MessageDialogLevel::Question => MessageButtons::OkCancel,
+                _ => MessageButtons::Ok,
+            };
+            let ok_pressed = MessageDialog::new()
+                .set_title(title.as_str())
+                .set_description(text.as_str())
+                .set_level(match level {
+                    MessageDialogLevel::Warning => MessageLevel::Warning,
+                    MessageDialogLevel::Error => MessageLevel::Error,
+                    _ => MessageLevel::Info,
+                })
+                .set_buttons(buttons)
+                .show();
+
+            if ok_pressed {
+                Response::ok(Vec::new());
+            } else {
+                Response::cancel();
+            }
+            return;
+        }
+        Command::Progress { title, label } => (
+            "def_layouts/progress.json".to_string(),
+            HashMap::from([("title", title), ("label", label)]),
+        ),
+        Command::Input { title, label, hint } => (
+            "def_layouts/input.json".to_string(),
+            HashMap::from([
+                ("title", title),
+                ("label", label),
+                ("placeholder", hint.unwrap_or("".to_string())),
+            ]),
+        ),
+        Command::LogIn {
+            title,
+            user_label,
+            pass_label,
+        } => (
+            "def_layouts/log_in.json".to_string(),
+            HashMap::from([
+                ("title", title),
+                ("user_label", user_label),
+                ("pass_label", pass_label),
+            ]),
+        ),
+        Command::Calendar {
+            title,
+            label,
+            date_format,
+        } => (
+            "def_layouts/calendar.json".to_string(),
+            HashMap::from([
+                ("title", title),
+                ("label", label),
+                ("date-format", date_format),
+            ]),
+        ),
+        Command::Color { title, label } => (
+            "def_layouts/color.json".to_string(),
+            HashMap::from([("title", title), ("label", label)]),
+        ),
+        Command::List {
+            title,
+            header,
+            values,
+        } => (
+            "def_layouts/list.json".to_string(),
+            HashMap::from([
+                ("title", title),
+                ("header", header),
+                ("values", format!("{:?}", values)),
+            ]),
+        ),
+        Command::Select {
+            title,
+            label,
+            options,
+        } => (
+            "def_layouts/select.json".to_string(),
+            HashMap::from([
+                ("title", title),
+                ("label", label),
+                ("options", format!("{:?}", options)),
+            ]),
+        ),
+        Command::Custom { layout_path } => (layout_path, HashMap::new()),
+    };
 
     if path.len() == 0 {
         return;
