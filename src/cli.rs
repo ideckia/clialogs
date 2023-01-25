@@ -4,6 +4,9 @@ use clap::{Parser, Subcommand};
 #[command(author, version, about, long_about = None)]
 #[command(propagate_version = true)]
 pub struct Cli {
+    // Path of the icon
+    #[arg(long)]
+    pub icon_path: Option<String>,
     #[command(subcommand)]
     pub command: Command,
 }
@@ -18,8 +21,6 @@ pub enum Command {
         /// Text of the notification
         #[arg(long)]
         text: String,
-        #[arg(long)]
-        icon_path: Option<String>,
     },
     /// File/Directory selection dialog
     FileDialog {
@@ -50,9 +51,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Progress"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Label of the progress
         #[arg(long, default_value_t = String::from(""))]
         label: String,
@@ -62,9 +60,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Input"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Label of the input
         #[arg(long, default_value_t = String::from(""))]
         label: String,
@@ -77,9 +72,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Log in"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         #[arg(long, default_value_t = String::from("User"))]
         user_label: String,
         #[arg(long, default_value_t = String::from("Password"))]
@@ -90,9 +82,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Calendar"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Label of the calendar button
         #[arg(long, default_value_t = String::from("Select date"))]
         label: String,
@@ -105,9 +94,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Color"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Label of the color button
         #[arg(long, default_value_t = String::from("Select color"))]
         label: String,
@@ -117,9 +103,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("List"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Header of the list
         #[arg(long, default_value_t = String::from("header"))]
         header: String,
@@ -132,9 +115,6 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Select"))]
         title: String,
-        /// Path of the icon
-        #[arg(long)]
-        icon_path: Option<String>,
         /// Label for the select box
         #[arg(long, default_value_t = String::from("Select one"))]
         label: String,
