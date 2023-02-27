@@ -24,6 +24,10 @@ pub enum Field {
     Label {
         text: String,
     },
+    Link {
+        label: String,
+        url: String,
+    },
     Text {
         id: String,
         #[serde(default)]

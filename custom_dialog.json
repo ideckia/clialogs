@@ -114,6 +114,13 @@
 				"id": "progress",
 				"label": "Progress"
 			}
+		},
+		{
+			"link": {
+				"id": "progress",
+				"label": "Clialogs github",
+				"url": "http://github.com/ideckia/clialogs"
+			}
 		}
 	]
 }

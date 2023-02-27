@@ -114,6 +114,9 @@ impl eframe::App for GUI {
                             Field::Label { text } => {
                                 ui.label(text.as_str());
                             }
+                            Field::Link { label, url } => {
+                                ui.hyperlink_to(label.as_str(), url);
+                            }
                             Field::Text {
                                 id: _,
                                 required,
@@ -332,6 +335,7 @@ impl eframe::App for GUI {
             .iter()
             .filter_map(|field| match field {
                 Field::Label { text: _ } => None,
+                Field::Link { label: _, url: _ } => None,
                 Field::Text {
                     id,
                     required,
