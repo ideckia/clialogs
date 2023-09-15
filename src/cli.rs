@@ -26,7 +26,10 @@ pub enum Command {
     FileDialog {
         /// Flag for directory selection
         #[arg(long)]
-        directory: bool,
+        is_directory: bool,
+        /// Flag for directory selection
+        #[arg(long, default_value_t = String::from(""))]
+        open_directory: String,
         /// Flag for multiple selection
         #[arg(long)]
         multiple: bool,

@@ -29,11 +29,16 @@ fn main() {
             return;
         }
         Command::FileDialog {
-            directory,
+            is_directory,
+            open_directory,
             multiple,
             save,
         } => {
-            let dialog = FileDialog::new();
+            let dialog = if open_directory != "" {
+                FileDialog::new().set_directory(open_directory)
+            } else {
+                FileDialog::new()
+            };
 
             let opt_paths = if save {
                 match dialog.save_file() {
@@ -41,13 +46,13 @@ fn main() {
                     None => None,
                 }
             } else if multiple {
-                if directory {
+                if is_directory {
                     dialog.pick_folders()
                 } else {
                     dialog.pick_files()
                 }
             } else {
-                if directory {
+                if is_directory {
                     match dialog.pick_folder() {
                         Some(d) => Some(vec![d]),
                         None => None,
