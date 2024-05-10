@@ -112,12 +112,14 @@ fn main() {
         ),
         Command::LogIn {
             title,
+            label,
             user_label,
             pass_label,
         } => (
             "def_layouts/log_in.json".to_string(),
             HashMap::from([
                 ("title", title),
+                ("label", label),
                 ("user_label", user_label),
                 ("pass_label", pass_label),
             ]),

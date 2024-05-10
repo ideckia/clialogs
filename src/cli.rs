@@ -75,6 +75,8 @@ pub enum Command {
         /// Title of the window
         #[arg(long, default_value_t = String::from("Log in"))]
         title: String,
+        #[arg(long, default_value_t = String::from("Label"))]
+        label: String,
         #[arg(long, default_value_t = String::from("User"))]
         user_label: String,
         #[arg(long, default_value_t = String::from("Password"))]
