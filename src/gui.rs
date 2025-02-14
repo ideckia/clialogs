@@ -313,18 +313,19 @@ impl eframe::App for GUI {
                     }
                 });
             ui.with_layout(egui::Layout::bottom_up(egui::Align::BOTTOM), |ui| {
-                ui.horizontal(|ui| {
-                    let buttons_width = 80.;
-                    ui.add_space((window_size.x - buttons_width * 1.5) * 0.5);
-                    if ui.button("Cancel").clicked() {
-                        frame.close();
-                    }
-                    if ui.button("Ok").clicked() {
-                        self.ok_pressed = true;
-                        frame.close();
-                    }
+                ui.vertical(|ui| {
+                    ui.horizontal_centered(|ui| {
+                        let buttons_width = 80.;
+                        ui.add_space((window_size.x - buttons_width * 1.5) * 0.5);
+                        if ui.button("Ok").clicked() {
+                            self.ok_pressed = true;
+                            frame.close();
+                        }
+                        if ui.button("Cancel").clicked() {
+                            frame.close();
+                        }
+                    });
                 });
-                ui.separator();
             });
         });
     }
