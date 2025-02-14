@@ -127,9 +127,9 @@ impl eframe::App for GUI {
                             } => {
                                 let mark_as_required = *required && text.len() == 0;
                                 let text_edit = if *multiline {
-                                    egui::TextEdit::multiline(text)
+                                    egui::TextEdit::multiline(text).desired_width(window_size.x)
                                 } else {
-                                    egui::TextEdit::singleline(text)
+                                    egui::TextEdit::singleline(text).desired_width(window_size.x)
                                 };
                                 GUI::add_labeled_widget(
                                     ui,
@@ -162,7 +162,9 @@ impl eframe::App for GUI {
                                 GUI::add_labeled_widget(
                                     ui,
                                     &label,
-                                    egui::TextEdit::singleline(text).password(true),
+                                    egui::TextEdit::singleline(text)
+                                        .password(true)
+                                        .desired_width(window_size.x),
                                     mark_as_required,
                                 );
                             }
@@ -219,7 +221,8 @@ impl eframe::App for GUI {
                                     ui.label(label.as_str());
                                     ui.add(
                                         egui::ProgressBar::new(self.progress / 100.)
-                                            .show_percentage(),
+                                            .show_percentage()
+                                            .desired_width(window_size.x),
                                     );
                                     ui.add(egui::Spinner::new());
                                 });
