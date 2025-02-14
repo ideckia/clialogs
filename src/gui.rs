@@ -44,7 +44,7 @@ impl GUI {
             return;
         }
 
-        ui.horizontal(|ui| {
+        ui.vertical(|ui| {
             if mark_as_required {
                 ui.label(egui::RichText::new(label_text.as_str()).color(egui::Color32::RED));
             } else {
