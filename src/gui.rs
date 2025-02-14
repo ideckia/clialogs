@@ -1,4 +1,5 @@
 use egui::Ui;
+use egui::Vec2;
 use egui::Widget;
 use egui_extras::{Column, TableBuilder};
 use mpsc::{Receiver, Sender};
@@ -313,11 +314,12 @@ impl eframe::App for GUI {
                     }
                 });
             ui.with_layout(egui::Layout::bottom_up(egui::Align::BOTTOM), |ui| {
+                ui.set_max_size(Vec2::new(window_size.x, 30.0));
                 ui.vertical(|ui| {
                     ui.separator();
                     ui.horizontal_centered(|ui| {
                         let buttons_width = 80.;
-                        ui.add_space((window_size.x - buttons_width * 1.5) * 0.5);
+                        ui.add_space((window_size.x - buttons_width) * 0.5);
                         if ui.button("Ok").clicked() {
                             self.ok_pressed = true;
                             frame.close();
