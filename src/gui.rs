@@ -314,6 +314,7 @@ impl eframe::App for GUI {
                 });
             ui.with_layout(egui::Layout::bottom_up(egui::Align::BOTTOM), |ui| {
                 ui.vertical(|ui| {
+                    ui.separator();
                     ui.horizontal_centered(|ui| {
                         let buttons_width = 80.;
                         ui.add_space((window_size.x - buttons_width * 1.5) * 0.5);
