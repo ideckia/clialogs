@@ -94,6 +94,9 @@ impl eframe::App for GUI {
             self.ok_pressed = true;
             frame.close();
         }
+        if ctx.input().key_released(egui::Key::Escape) {
+            frame.close();
+        }
         match self.rx.try_recv() {
             Ok(user_input) => match user_input {
                 UserInput::Progress(progress) => {
