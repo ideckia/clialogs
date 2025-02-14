@@ -1,6 +1,8 @@
 use chrono::{Datelike, NaiveDate, Utc};
 use serde::Deserialize;
 
+use crate::gui::LabelPos;
+
 #[derive(Deserialize)]
 pub struct CustomDialog {
     #[serde(default)]
@@ -36,6 +38,8 @@ pub enum Field {
         multiline: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         #[serde(default)]
         text: String,
         #[serde(default)]
@@ -47,6 +51,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         #[serde(default = "default_date")]
         #[serde(with = "y_m_d_date_format")]
         date: NaiveDate,
@@ -59,6 +65,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         #[serde(default)]
         text: String,
     },
@@ -78,6 +86,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         #[serde(default)]
         rgb: [u8; 3],
     },
@@ -87,6 +97,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
     },
     Check {
         id: String,
@@ -103,6 +115,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         selected: String,
         options: Vec<String>,
     },
@@ -112,6 +126,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_label_pos")]
+        label_pos: LabelPos,
         min: f32,
         max: f32,
         value: f32,
@@ -142,6 +158,9 @@ fn default_size() -> (f32, f32) {
 }
 fn default_pos() -> (f32, f32) {
     (800., 400.)
+}
+fn default_label_pos() -> LabelPos {
+    LabelPos::Over
 }
 
 mod y_m_d_date_format {
