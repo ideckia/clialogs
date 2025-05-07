@@ -3,7 +3,7 @@ use clialogs::{
     cli::{Command, MessageDialogLevel},
     response::{Response, ResponseBody},
 };
-use eframe::IconData;
+use egui::IconData;
 use image::GenericImageView;
 use regex::Regex;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageLevel};
@@ -192,34 +192,23 @@ fn main() {
 
     let title = custom_dialog_data.title.unwrap_or("Title".to_string());
     let mut native_options = eframe::NativeOptions {
-        always_on_top: true,
-        decorated: !custom_dialog_data.window_border,
-        initial_window_size: Some(egui::Vec2 {
-            x: custom_dialog_data.window_size.0,
-            y: custom_dialog_data.window_size.1,
-        }),
-        initial_window_pos: Some(egui::Pos2 {
-            x: custom_dialog_data.window_pos.0,
-            y: custom_dialog_data.window_pos.1,
-        }),
+        viewport: egui::ViewportBuilder::default()
+            .with_position(egui::Pos2 {
+                x: custom_dialog_data.window_pos.0,
+                y: custom_dialog_data.window_pos.1,
+            })
+            .with_decorations(!custom_dialog_data.borderless)
+            .with_inner_size([
+                custom_dialog_data.window_size.0,
+                custom_dialog_data.window_size.1,
+            ])
+            .with_title(&title)
+            .with_window_level(egui::WindowLevel::AlwaysOnTop),
+
         centered: true,
         renderer: eframe::Renderer::Wgpu,
         ..Default::default()
     };
-
-    match custom_dialog_data.theme {
-        Some(theme) => {
-            native_options.follow_system_theme = false;
-            native_options.default_theme = if theme == "dark".to_string() {
-                eframe::Theme::Dark
-            } else {
-                eframe::Theme::Light
-            };
-        }
-        None => {
-            native_options.follow_system_theme = true;
-        }
-    }
 
     let icon_path = match custom_dialog_data.icon_path {
         Some(d) => Some(d),
@@ -233,17 +222,17 @@ fn main() {
         let img = image::open(icon).unwrap();
         let (width, height) = img.dimensions();
 
-        native_options.icon_data = Some(IconData {
+        native_options.viewport.icon = Some(std::sync::Arc::new(IconData {
             rgba: img.to_rgba8().into_raw(),
             width,
             height,
-        });
+        }));
     }
 
-    eframe::run_native(
+    let _ = eframe::run_native(
         &title.as_str(),
         native_options,
-        Box::new(|_cc| Box::new(clialogs::gui::GUI::new(custom_dialog_data.body))),
+        Box::new(|_cc| Ok(Box::new(clialogs::gui::GUI::new(custom_dialog_data.body)))),
     );
 }
 
