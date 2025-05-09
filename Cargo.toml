@@ -15,9 +15,9 @@ notify-rust = "4.5.10"
 rfd = "0.10.0"
 serde = { version = "1.0.219", features = ["derive", "std"] }
 serde_json = "1.0.85"
-egui_extras = { version = "0.31" , features = ["datepicker"] }
+egui_extras = { version = "0.31" , features = ["datepicker", "all_loaders"] }
 chrono = "0.4.22"
-image = "0.24.4"
+image = { version = "0.25.6", features = ["jpeg", "png"] }
 clap = { version = "4.0.9", features = ["derive"] }
 regex = "1.6.0"
 

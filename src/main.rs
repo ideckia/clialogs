@@ -232,7 +232,10 @@ fn main() {
     let _ = eframe::run_native(
         &title.as_str(),
         native_options,
-        Box::new(|_cc| Ok(Box::new(clialogs::gui::GUI::new(custom_dialog_data.body)))),
+        Box::new(|cc| {
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+            Ok(Box::new(clialogs::gui::GUI::new(custom_dialog_data.body)))
+        }),
     );
 }
 

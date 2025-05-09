@@ -22,6 +22,19 @@ pub enum LabelPos {
     Over,
     Next,
 }
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HLabelPos {
+    Before,
+    After,
+}
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HAlign {
+    Left,
+    Center,
+    Right,
+}
 
 enum UserInput {
     Progress(f32),
@@ -30,6 +43,7 @@ enum UserInput {
 impl GUI {
     pub fn new(custom_dialog_fields: Vec<Field>) -> Self {
         let (tx, rx): (Sender<UserInput>, Receiver<UserInput>) = mpsc::channel();
+
         Self::handle_user_input(tx);
         GUI {
             custom_dialog_fields,
@@ -86,7 +100,6 @@ impl GUI {
         std::thread::spawn(move || {
             let stdin = std::io::stdin();
             let mut user_input = String::new();
-            // let stop_string = String::from("progress");
             let progress_regex = regex::Regex::new("progress-([0-9]+)").unwrap();
             let sleep_duration = std::time::Duration::from_millis(100);
 
@@ -115,15 +128,24 @@ impl GUI {
 }
 
 impl eframe::App for GUI {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        let window_size = frame.info().window_info.size;
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let window_rect = ctx.input(|i: &egui::InputState| i.screen_rect());
+        let window_size = Vec2::new(
+            window_rect.max.x - window_rect.min.x,
+            window_rect.max.y - window_rect.min.y,
+        );
         let bottom_line_height = 60.;
-        if ctx.input().key_released(egui::Key::Enter) && !ctx.input().modifiers.shift {
+        let is_shift = ctx.input(|i| i.modifiers.shift);
+        let is_enter = ctx.input(|i| i.key_released(egui::Key::Enter));
+
+        if is_enter && !is_shift {
             self.ok_pressed = true;
-            frame.close();
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
-        if ctx.input().key_released(egui::Key::Escape) {
-            frame.close();
+
+        let is_escape = ctx.input(|i| i.key_released(egui::Key::Escape));
+        if is_escape {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
         match self.rx.try_recv() {
             Ok(user_input) => match user_input {
@@ -277,7 +299,7 @@ impl eframe::App for GUI {
                                                     .show_percentage()
                                                     .desired_width(window_size.x),
                                             );
-                                            ui.add(egui::Spinner::new());
+                                            // ui.add(egui::Spinner::new());
                                         });
                                     }
                                     LabelPos::Next => {
@@ -298,18 +320,34 @@ impl eframe::App for GUI {
                                 id: _,
                                 required,
                                 label,
+                                label_pos,
                                 checked,
-                            } => {
-                                if *required && !*checked {
-                                    ui.checkbox(
-                                        checked,
-                                        egui::RichText::new(label.as_str())
-                                            .color(egui::Color32::RED),
-                                    );
-                                } else {
-                                    ui.checkbox(checked, label.as_str());
+                            } => match label_pos {
+                                HLabelPos::Before => {
+                                    ui.horizontal(|ui| {
+                                        if *required && !*checked {
+                                            ui.label(
+                                                egui::RichText::new(label.as_str())
+                                                    .color(egui::Color32::RED),
+                                            );
+                                        } else {
+                                            ui.label(label.as_str());
+                                        }
+                                        ui.checkbox(checked, "");
+                                    });
                                 }
-                            }
+                                HLabelPos::After => {
+                                    if *required && !*checked {
+                                        ui.checkbox(
+                                            checked,
+                                            egui::RichText::new(label.as_str())
+                                                .color(egui::Color32::RED),
+                                        );
+                                    } else {
+                                        ui.checkbox(checked, label.as_str());
+                                    }
+                                }
+                            },
                             Field::Radio {
                                 id: _,
                                 required,
@@ -392,6 +430,40 @@ impl eframe::App for GUI {
                                     }
                                 });
                             }
+                            Field::Image {
+                                id: _,
+                                path,
+                                scale,
+                                h_align,
+                            } => {
+                                ui.horizontal(|ui| {
+                                    let img = egui::Image::new(path.to_string())
+                                        .fit_to_original_size(*scale);
+                                    let tpoll =
+                                        img.load_for_size(ui.ctx(), ui.available_size()).unwrap();
+                                    let mut img_w = 0.;
+
+                                    match tpoll.size() {
+                                        Some(s) => {
+                                            img_w = s.x * *scale;
+                                        }
+                                        None => {}
+                                    }
+                                    let space = match h_align {
+                                        HAlign::Left => 0.,
+                                        HAlign::Center => {
+                                            (window_size.x - ui.spacing().item_spacing.x - img_w)
+                                                * 0.5
+                                        }
+                                        HAlign::Right => {
+                                            window_size.x - ui.spacing().item_spacing.x - img_w
+                                        }
+                                    };
+
+                                    ui.add_space(space);
+                                    ui.add(img);
+                                });
+                            }
                         });
                     }
                 });
@@ -404,171 +476,21 @@ impl eframe::App for GUI {
                         ui.add_space((window_size.x - buttons_width) * 0.5);
                         if ui.button("Ok").clicked() {
                             self.ok_pressed = true;
-                            frame.close();
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                         if ui.button("Cancel").clicked() {
-                            frame.close();
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                     });
                 });
             });
         });
-    }
 
-    fn on_close_event(&mut self) -> bool {
-        if !self.ok_pressed {
-            Response::cancel();
-            return true;
+        let close_requested = ctx.input(|i| i.viewport().close_requested());
+
+        if close_requested && !confirm_close(self) {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
         }
-
-        let mut close_window = true;
-        let out: Vec<ResponseBody> = self
-            .custom_dialog_fields
-            .iter()
-            .filter_map(|field| match field {
-                Field::Label { text: _ } => None,
-                Field::Link { label: _, url: _ } => None,
-                Field::Text {
-                    id,
-                    required,
-                    multiline: _,
-                    label_pos: _,
-                    label: _,
-                    text,
-                    placeholder: _,
-                } => {
-                    if *required && text.len() == 0 {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: text.to_string(),
-                    })
-                }
-                Field::Calendar {
-                    id,
-                    required: _,
-                    label: _,
-                    label_pos: _,
-                    date,
-                    date_format,
-                } => Some(ResponseBody {
-                    id: id.to_string(),
-                    value: format!("{}", date.format(date_format)),
-                }),
-                Field::Password {
-                    id,
-                    required,
-                    label: _,
-                    label_pos: _,
-                    text,
-                } => {
-                    if *required && text.len() == 0 {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: text.to_string(),
-                    })
-                }
-                Field::List {
-                    id,
-                    required,
-                    header: _,
-                    selected,
-                    values: _,
-                } => {
-                    if *required && selected.len() == 0 {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: selected.to_string(),
-                    })
-                }
-                Field::Color {
-                    id,
-                    required: _,
-                    label: _,
-                    label_pos: _,
-                    rgb,
-                } => Some(ResponseBody {
-                    id: id.to_string(),
-                    value: format!("[{},{},{}]", rgb[0], rgb[1], rgb[2]),
-                }),
-                Field::Progress {
-                    id: _,
-                    required: _,
-                    label: _,
-                    label_pos: _,
-                } => None,
-                Field::Check {
-                    id,
-                    required,
-                    label: _,
-                    checked,
-                } => {
-                    if *required && !checked {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: checked.to_string(),
-                    })
-                }
-                Field::Radio {
-                    id,
-                    required,
-                    label: _,
-                    label_pos: _,
-                    selected,
-                    options: _,
-                } => {
-                    if *required && selected.len() == 0 {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: selected.to_string(),
-                    })
-                }
-                Field::Slider {
-                    id,
-                    required: _,
-                    label: _,
-                    label_pos: _,
-                    min: _,
-                    max: _,
-                    value,
-                    suffix: _,
-                } => Some(ResponseBody {
-                    id: id.to_string(),
-                    value: value.to_string(),
-                }),
-                Field::Combobox {
-                    id,
-                    required,
-                    label: _,
-                    options: _,
-                    selected,
-                } => {
-                    if *required && selected.len() == 0 {
-                        close_window = false;
-                    }
-                    Some(ResponseBody {
-                        id: id.to_string(),
-                        value: selected.to_string(),
-                    })
-                }
-            })
-            .collect();
-        if close_window {
-            Response::ok(out);
-        }
-
-        self.ok_pressed = false;
-
-        close_window
     }
 
     fn on_exit(&mut self) {}
@@ -578,31 +500,170 @@ impl eframe::App for GUI {
     fn auto_save_interval(&self) -> std::time::Duration {
         std::time::Duration::from_secs(30)
     }
+}
 
-    fn max_size_points(&self) -> egui::Vec2 {
-        egui::Vec2::INFINITY
+fn confirm_close(gui: &mut GUI) -> bool {
+    if !gui.ok_pressed {
+        Response::cancel();
+        return true;
     }
 
-    fn clear_color(&self, _visuals: &egui::Visuals) -> egui::Rgba {
-        // NOTE: a bright gray makes the shadows of the windows look weird.
-        // We use a bit of transparency so that if the user switches on the
-        // `transparent()` option they get immediate results.
-        egui::Color32::from_rgba_unmultiplied(12, 12, 12, 180).into()
-
-        // _visuals.window_fill() would also be a natural choice
+    let mut close_window = true;
+    let out: Vec<ResponseBody> = gui
+        .custom_dialog_fields
+        .iter()
+        .filter_map(|field| match field {
+            Field::Label { text: _ } => None,
+            Field::Link { label: _, url: _ } => None,
+            Field::Text {
+                id,
+                required,
+                multiline: _,
+                label_pos: _,
+                label: _,
+                text,
+                placeholder: _,
+            } => {
+                if *required && text.len() == 0 {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: text.to_string(),
+                })
+            }
+            Field::Calendar {
+                id,
+                required: _,
+                label: _,
+                label_pos: _,
+                date,
+                date_format,
+            } => Some(ResponseBody {
+                id: id.to_string(),
+                value: format!("{}", date.format(&date_format)),
+            }),
+            Field::Password {
+                id,
+                required,
+                label: _,
+                label_pos: _,
+                text,
+            } => {
+                if *required && text.len() == 0 {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: text.to_string(),
+                })
+            }
+            Field::List {
+                id,
+                required,
+                header: _,
+                selected,
+                values: _,
+            } => {
+                if *required && selected.len() == 0 {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: selected.to_string(),
+                })
+            }
+            Field::Color {
+                id,
+                required: _,
+                label: _,
+                label_pos: _,
+                rgb,
+            } => Some(ResponseBody {
+                id: id.to_string(),
+                value: format!("[{},{},{}]", rgb[0], rgb[1], rgb[2]),
+            }),
+            Field::Progress {
+                id: _,
+                required: _,
+                label: _,
+                label_pos: _,
+            } => None,
+            Field::Check {
+                id,
+                required,
+                label: _,
+                label_pos: _,
+                checked,
+            } => {
+                if *required && !checked {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: checked.to_string(),
+                })
+            }
+            Field::Radio {
+                id,
+                required,
+                label: _,
+                label_pos: _,
+                selected,
+                options: _,
+            } => {
+                if *required && selected.len() == 0 {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: selected.to_string(),
+                })
+            }
+            Field::Slider {
+                id,
+                required: _,
+                label: _,
+                label_pos: _,
+                min: _,
+                max: _,
+                value,
+                suffix: _,
+            } => Some(ResponseBody {
+                id: id.to_string(),
+                value: value.to_string(),
+            }),
+            Field::Combobox {
+                id,
+                required,
+                label: _,
+                options: _,
+                selected,
+            } => {
+                if *required && selected.len() == 0 {
+                    close_window = false;
+                }
+                Some(ResponseBody {
+                    id: id.to_string(),
+                    value: selected.to_string(),
+                })
+            }
+            Field::Image {
+                id,
+                path,
+                scale: _,
+                h_align: _,
+            } => Some(ResponseBody {
+                id: id.to_string(),
+                value: path.to_string(),
+            }),
+        })
+        .collect();
+    if close_window {
+        Response::ok(out);
     }
 
-    fn persist_native_window(&self) -> bool {
-        true
-    }
+    gui.ok_pressed = false;
 
-    fn persist_egui_memory(&self) -> bool {
-        true
-    }
-
-    fn warm_up_enabled(&self) -> bool {
-        false
-    }
-
-    fn post_rendering(&mut self, _window_size_px: [u32; 2], _frame: &eframe::Frame) {}
+    close_window
 }

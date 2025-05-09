@@ -1,18 +1,16 @@
 use chrono::{Datelike, NaiveDate, Utc};
 use serde::Deserialize;
 
-use crate::gui::LabelPos;
+use crate::gui::{HAlign, HLabelPos, LabelPos};
 
 #[derive(Deserialize)]
 pub struct CustomDialog {
     #[serde(default)]
     pub title: Option<String>,
     #[serde(default)]
-    pub theme: Option<String>,
-    #[serde(default)]
     pub icon_path: Option<String>,
     #[serde(default)]
-    pub window_border: bool,
+    pub borderless: bool,
     #[serde(default = "default_size")]
     pub window_size: (f32, f32),
     #[serde(default = "default_pos")]
@@ -106,6 +104,8 @@ pub enum Field {
         required: bool,
         #[serde(default)]
         label: String,
+        #[serde(default = "default_h_label_pos")]
+        label_pos: HLabelPos,
         #[serde(default)]
         checked: bool,
     },
@@ -144,6 +144,15 @@ pub enum Field {
         #[serde(default)]
         selected: String,
     },
+    Image {
+        id: String,
+        #[serde(default)]
+        path: String,
+        #[serde(default = "default_image_scale")]
+        scale: f32,
+        #[serde(default = "default_h_align")]
+        h_align: HAlign,
+    },
 }
 
 fn default_date() -> NaiveDate {
@@ -161,6 +170,15 @@ fn default_pos() -> (f32, f32) {
 }
 fn default_label_pos() -> LabelPos {
     LabelPos::Over
+}
+fn default_h_label_pos() -> HLabelPos {
+    HLabelPos::After
+}
+fn default_image_scale() -> f32 {
+    1.0
+}
+fn default_h_align() -> HAlign {
+    HAlign::Center
 }
 
 mod y_m_d_date_format {

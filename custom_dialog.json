@@ -1,7 +1,7 @@
 {
 	"title": "Custom dialogs",
 	"window_size": [
-		300,
+		350,
 		600
 	],
 	"body": [
@@ -120,6 +120,12 @@
 				"id": "progress",
 				"label": "Clialogs github",
 				"url": "http://github.com/ideckia/clialogs"
+			}
+		},
+		{
+			"image": {
+				"id": "irudia",
+				"path": "file://./qr.png"
 			}
 		}
 	]
