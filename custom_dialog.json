@@ -124,7 +124,7 @@
 		},
 		{
 			"image": {
-				"id": "irudia",
+				"id": "image",
 				"path": "file://./qr.png"
 			}
 		}

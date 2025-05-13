@@ -57,6 +57,7 @@ impl GUI {
         ui: &mut Ui,
         label_text: &String,
         label_pos: &LabelPos,
+        font_size: f32,
         widget: impl Widget,
         mark_as_required: bool,
     ) {
@@ -71,25 +72,27 @@ impl GUI {
         match label_pos {
             LabelPos::Over => {
                 ui.vertical(|ui| {
-                    if mark_as_required {
-                        ui.label(
-                            egui::RichText::new(label_text.as_str()).color(egui::Color32::RED),
-                        );
+                    let label_w = if mark_as_required {
+                        egui::RichText::new(label_text.as_str())
+                            .size(font_size)
+                            .color(egui::Color32::RED)
                     } else {
-                        ui.label(label_text.as_str());
-                    }
+                        egui::RichText::new(label_text.as_str()).size(font_size)
+                    };
+                    ui.label(label_w);
                     ui.add(widget);
                 });
             }
             LabelPos::Next => {
                 ui.horizontal(|ui| {
-                    if mark_as_required {
-                        ui.label(
-                            egui::RichText::new(label_text.as_str()).color(egui::Color32::RED),
-                        );
+                    let label_w = if mark_as_required {
+                        egui::RichText::new(label_text.as_str())
+                            .size(font_size)
+                            .color(egui::Color32::RED)
                     } else {
-                        ui.label(label_text.as_str());
-                    }
+                        egui::RichText::new(label_text.as_str()).size(font_size)
+                    };
+                    ui.label(label_w);
                     ui.add(widget);
                 });
             }
@@ -164,31 +167,50 @@ impl eframe::App for GUI {
                 .show(ui, |ui| {
                     for (index, field) in self.custom_dialog_fields.iter_mut().enumerate() {
                         ui.push_id(index, |ui| match field {
-                            Field::Label { text } => {
-                                ui.label(text.as_str());
+                            Field::Label { text, font_size } => {
+                                ui.label(egui::RichText::new(text.as_str()).size(*font_size));
                             }
-                            Field::Link { label, url } => {
-                                ui.hyperlink_to(label.as_str(), url);
+                            Field::Link {
+                                label,
+                                url,
+                                font_size,
+                            } => {
+                                ui.hyperlink_to(
+                                    egui::RichText::new(label.as_str()).size(*font_size),
+                                    url,
+                                );
                             }
                             Field::Text {
                                 id: _,
                                 required,
                                 multiline,
-                                label_pos,
                                 label,
+                                label_pos,
+                                font_size,
                                 text,
                                 placeholder,
                             } => {
                                 let mark_as_required = *required && text.len() == 0;
                                 let text_edit = if *multiline {
-                                    egui::TextEdit::multiline(text).desired_width(window_size.x)
+                                    egui::TextEdit::multiline(text)
+                                        .desired_width(window_size.x)
+                                        .font(egui::FontId::new(
+                                            *font_size,
+                                            egui::FontFamily::Proportional,
+                                        ))
                                 } else {
-                                    egui::TextEdit::singleline(text).desired_width(window_size.x)
+                                    egui::TextEdit::singleline(text)
+                                        .desired_width(window_size.x)
+                                        .font(egui::FontId::new(
+                                            *font_size,
+                                            egui::FontFamily::Proportional,
+                                        ))
                                 };
                                 GUI::add_labeled_widget(
                                     ui,
                                     &label,
                                     &label_pos,
+                                    *font_size,
                                     text_edit.hint_text(placeholder.as_str()),
                                     mark_as_required,
                                 );
@@ -198,6 +220,7 @@ impl eframe::App for GUI {
                                 required: _,
                                 label,
                                 label_pos,
+                                font_size,
                                 date,
                                 date_format: _,
                             } => {
@@ -205,6 +228,7 @@ impl eframe::App for GUI {
                                     ui,
                                     &label,
                                     &label_pos,
+                                    *font_size,
                                     egui_extras::DatePickerButton::new(date),
                                     false,
                                 );
@@ -214,6 +238,7 @@ impl eframe::App for GUI {
                                 required,
                                 label,
                                 label_pos,
+                                font_size,
                                 text,
                             } => {
                                 let mark_as_required = *required && text.len() == 0;
@@ -221,9 +246,14 @@ impl eframe::App for GUI {
                                     ui,
                                     &label,
                                     &label_pos,
+                                    *font_size,
                                     egui::TextEdit::singleline(text)
                                         .password(true)
-                                        .desired_width(window_size.x),
+                                        .desired_width(window_size.x)
+                                        .font(egui::FontId::new(
+                                            *font_size,
+                                            egui::FontFamily::Proportional,
+                                        )),
                                     mark_as_required,
                                 );
                             }
@@ -233,6 +263,7 @@ impl eframe::App for GUI {
                                 header,
                                 selected,
                                 values,
+                                font_size,
                             } => {
                                 TableBuilder::new(ui)
                                     .striped(true)
@@ -240,21 +271,27 @@ impl eframe::App for GUI {
                                     .column(Column::remainder().at_least(100.0))
                                     .header(20.0, |mut row| {
                                         row.col(|ui| {
-                                            if *required && selected.len() == 0 {
-                                                ui.heading(
-                                                    egui::RichText::new(header.as_str())
-                                                        .color(egui::Color32::RED),
-                                                );
+                                            let heading = if *required && selected.len() == 0 {
+                                                egui::RichText::new(header.as_str())
+                                                    .size(*font_size)
+                                                    .color(egui::Color32::RED)
                                             } else {
-                                                ui.heading(header);
-                                            }
+                                                egui::RichText::new(header.as_str())
+                                                    .size(*font_size)
+                                            };
+                                            ui.heading(heading);
                                         });
                                     })
                                     .body(|mut body| {
                                         for v in values.iter() {
                                             body.row(18.0, |mut row| {
                                                 row.col(|ui| {
-                                                    ui.selectable_value(selected, v.to_string(), v);
+                                                    ui.selectable_value(
+                                                        selected,
+                                                        v.to_string(),
+                                                        egui::RichText::new(v.as_str())
+                                                            .size(*font_size),
+                                                    );
                                                 });
                                             });
                                         }
@@ -265,11 +302,14 @@ impl eframe::App for GUI {
                                 required: _,
                                 label,
                                 label_pos,
+                                font_size,
                                 rgb,
                             } => match label_pos {
                                 LabelPos::Over => {
                                     ui.vertical(|ui| {
-                                        ui.label(label.as_str());
+                                        ui.label(
+                                            egui::RichText::new(label.as_str()).size(*font_size),
+                                        );
                                         egui::widgets::color_picker::color_edit_button_srgb(
                                             ui, rgb,
                                         );
@@ -286,14 +326,17 @@ impl eframe::App for GUI {
                             },
                             Field::Progress {
                                 id: _,
-                                required: _,
                                 label,
                                 label_pos,
+                                font_size,
                             } => {
                                 match label_pos {
                                     LabelPos::Over => {
                                         ui.vertical(|ui| {
-                                            ui.label(label.as_str());
+                                            ui.label(
+                                                egui::RichText::new(label.as_str())
+                                                    .size(*font_size),
+                                            );
                                             ui.add(
                                                 egui::ProgressBar::new(self.progress / 100.)
                                                     .show_percentage()
@@ -304,7 +347,10 @@ impl eframe::App for GUI {
                                     }
                                     LabelPos::Next => {
                                         ui.horizontal(|ui| {
-                                            ui.label(label.as_str());
+                                            ui.label(
+                                                egui::RichText::new(label.as_str())
+                                                    .size(*font_size),
+                                            );
                                             ui.add(
                                                 egui::ProgressBar::new(self.progress / 100.)
                                                     .show_percentage()
@@ -321,31 +367,31 @@ impl eframe::App for GUI {
                                 required,
                                 label,
                                 label_pos,
+                                font_size,
                                 checked,
                             } => match label_pos {
                                 HLabelPos::Before => {
                                     ui.horizontal(|ui| {
-                                        if *required && !*checked {
-                                            ui.label(
-                                                egui::RichText::new(label.as_str())
-                                                    .color(egui::Color32::RED),
-                                            );
+                                        let label_w = if *required && !*checked {
+                                            egui::RichText::new(label.as_str())
+                                                .size(*font_size)
+                                                .color(egui::Color32::RED)
                                         } else {
-                                            ui.label(label.as_str());
-                                        }
+                                            egui::RichText::new(label.as_str()).size(*font_size)
+                                        };
+                                        ui.label(label_w);
                                         ui.checkbox(checked, "");
                                     });
                                 }
                                 HLabelPos::After => {
-                                    if *required && !*checked {
-                                        ui.checkbox(
-                                            checked,
-                                            egui::RichText::new(label.as_str())
-                                                .color(egui::Color32::RED),
-                                        );
+                                    let label_w = if *required && !*checked {
+                                        egui::RichText::new(label.as_str())
+                                            .size(*font_size)
+                                            .color(egui::Color32::RED)
                                     } else {
-                                        ui.checkbox(checked, label.as_str());
-                                    }
+                                        egui::RichText::new(label.as_str()).size(*font_size)
+                                    };
+                                    ui.checkbox(checked, label_w);
                                 }
                             },
                             Field::Radio {
@@ -353,21 +399,26 @@ impl eframe::App for GUI {
                                 required,
                                 label,
                                 label_pos,
+                                font_size,
                                 selected,
                                 options,
                             } => match label_pos {
                                 LabelPos::Over => {
                                     ui.vertical(|ui| {
-                                        if *required && selected.len() == 0 {
-                                            ui.label(
-                                                egui::RichText::new(label.as_str())
-                                                    .color(egui::Color32::RED),
-                                            );
+                                        let label_w = if *required && selected.len() == 0 {
+                                            egui::RichText::new(label.as_str())
+                                                .size(*font_size)
+                                                .color(egui::Color32::RED)
                                         } else {
-                                            ui.label(label.as_str());
-                                        }
+                                            egui::RichText::new(label.as_str()).size(*font_size)
+                                        };
+                                        ui.label(label_w);
                                         for opt in options.iter() {
-                                            ui.radio_value(selected, opt.to_string(), opt);
+                                            ui.radio_value(
+                                                selected,
+                                                opt.to_string(),
+                                                egui::RichText::new(opt.as_str()).size(*font_size),
+                                            );
                                         }
                                     });
                                 }
@@ -382,7 +433,11 @@ impl eframe::App for GUI {
                                             ui.label(label.as_str());
                                         }
                                         for opt in options.iter() {
-                                            ui.radio_value(selected, opt.to_string(), opt);
+                                            ui.radio_value(
+                                                selected,
+                                                opt.to_string(),
+                                                egui::RichText::new(opt.as_str()).size(*font_size),
+                                            );
                                         }
                                     });
                                 }
@@ -392,6 +447,7 @@ impl eframe::App for GUI {
                                 required: _,
                                 label,
                                 label_pos,
+                                font_size,
                                 min,
                                 max,
                                 value,
@@ -401,6 +457,7 @@ impl eframe::App for GUI {
                                     ui,
                                     &label,
                                     &label_pos,
+                                    *font_size,
                                     egui::Slider::new(value, *min..=*max).suffix(suffix.as_str()),
                                     false,
                                 );
@@ -409,23 +466,24 @@ impl eframe::App for GUI {
                                 id: _,
                                 required,
                                 label,
+                                font_size,
                                 options,
                                 selected,
                             } => {
-                                let combo = if *required && selected.len() == 0 {
-                                    egui::ComboBox::from_label(
-                                        egui::RichText::new(label.as_str())
-                                            .color(egui::Color32::RED),
-                                    )
+                                let label_w = if *required && selected.len() == 0 {
+                                    egui::RichText::new(label.as_str())
+                                        .size(*font_size)
+                                        .color(egui::Color32::RED)
                                 } else {
-                                    egui::ComboBox::from_label(egui::RichText::new(label.as_str()))
+                                    egui::RichText::new(label.as_str()).size(*font_size)
                                 };
+                                let combo = egui::ComboBox::from_label(label_w);
                                 combo.selected_text(selected.as_str()).show_ui(ui, |ui| {
                                     for opt in options {
                                         ui.selectable_value(
                                             selected,
                                             opt.to_string(),
-                                            opt.as_str(),
+                                            egui::RichText::new(opt.as_str()).size(*font_size),
                                         );
                                     }
                                 });
@@ -513,14 +571,22 @@ fn confirm_close(gui: &mut GUI) -> bool {
         .custom_dialog_fields
         .iter()
         .filter_map(|field| match field {
-            Field::Label { text: _ } => None,
-            Field::Link { label: _, url: _ } => None,
+            Field::Label {
+                text: _,
+                font_size: _,
+            } => None,
+            Field::Link {
+                label: _,
+                url: _,
+                font_size: _,
+            } => None,
             Field::Text {
                 id,
                 required,
                 multiline: _,
-                label_pos: _,
                 label: _,
+                label_pos: _,
+                font_size: _,
                 text,
                 placeholder: _,
             } => {
@@ -537,6 +603,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 required: _,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 date,
                 date_format,
             } => Some(ResponseBody {
@@ -548,6 +615,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 required,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 text,
             } => {
                 if *required && text.len() == 0 {
@@ -564,6 +632,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 header: _,
                 selected,
                 values: _,
+                font_size: _,
             } => {
                 if *required && selected.len() == 0 {
                     close_window = false;
@@ -578,6 +647,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 required: _,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 rgb,
             } => Some(ResponseBody {
                 id: id.to_string(),
@@ -585,15 +655,16 @@ fn confirm_close(gui: &mut GUI) -> bool {
             }),
             Field::Progress {
                 id: _,
-                required: _,
                 label: _,
                 label_pos: _,
+                font_size: _,
             } => None,
             Field::Check {
                 id,
                 required,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 checked,
             } => {
                 if *required && !checked {
@@ -609,6 +680,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 required,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 selected,
                 options: _,
             } => {
@@ -625,6 +697,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 required: _,
                 label: _,
                 label_pos: _,
+                font_size: _,
                 min: _,
                 max: _,
                 value,
@@ -637,6 +710,7 @@ fn confirm_close(gui: &mut GUI) -> bool {
                 id,
                 required,
                 label: _,
+                font_size: _,
                 options: _,
                 selected,
             } => {
